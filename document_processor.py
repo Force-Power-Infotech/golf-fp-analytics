@@ -167,8 +167,13 @@ def analyze_player_performance(client, df, selected_player):
     scoring format:
     H_1_GS: Hole 1 Gross Score
     H_1_NS: Hole 1 Net Score
+    for GS calculation consider Handicap always
 
     Selected Player: {selected_player}
+
+    Important: 
+    This a very extended analysis, so please make sure to provide a detailed analysis with all the required metrics.
+    Don't say continue this structure for all holes, provide the analysis for each hole separately.
 
     Provide a comprehensive technical analysis following this structure:
 
@@ -194,7 +199,7 @@ def analyze_player_performance(client, df, selected_player):
        - Course management efficiency rating
 
     4. Hole-by-Hole Statistical Breakdown:
-    * For each hole (1-18):
+    * Need For each and every hole (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18) [Important, if not available, please mention]:
        - FORMAT AS: "Hole [X] ([Par]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
        - FORMAT AS: "Total Pars: [number]"
        - FORMAT AS: "Double Bogeys or Worse: [number]"
@@ -272,7 +277,7 @@ def analyze_player_performance(client, df, selected_player):
                 {"role": "system", "content": "You are a professional golf analyst specializing in statistical analysis and performance improvement recommendations."},
                 {"role": "user", "content": analysis_prompt}
             ],
-            temperature=0.7,
+            temperature=0.85,
         )
 
         return response.choices[0].message.content
