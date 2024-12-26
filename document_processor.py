@@ -164,6 +164,10 @@ def analyze_player_performance(client, df, selected_player):
     {df.to_string()}
     ////END////
 
+    scoring format:
+    H_1_GS: Hole 1 Gross Score
+    H_1_NS: Hole 1 Net Score
+
     Selected Player: {selected_player}
 
     Provide a comprehensive technical analysis following this structure:
@@ -190,22 +194,24 @@ def analyze_player_performance(client, df, selected_player):
        - Course management efficiency rating
 
     4. Hole-by-Hole Statistical Breakdown:
+    * For each hole (1-18):
        - FORMAT AS: "Hole [X] ([Par]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
        - FORMAT AS: "Total Pars: [number]"
        - FORMAT AS: "Double Bogeys or Worse: [number]"
        - Time of Day Analysis:
           * FORMAT AS: "Morning Stats - Hole [X]:"
-        - Average Score: [value]
-        - Total Pars: [number]
-        - Double Bogeys or Worse: [number]
+            - Average Score: [value]
+            - Total Pars: [number]
+            - Double Bogeys or Worse: [number]
           * FORMAT AS: "Afternoon Stats - Hole [X]:"
-        - Average Score: [value]
-        - Total Pars: [number]
-        - Double Bogeys or Worse: [number]
+            - Average Score: [value]
+            - Total Pars: [number]
+            - Double Bogeys or Worse: [number]
        - Risk/reward decision points
        - Shot distribution patterns
        - Critical scoring opportunities
        - Recovery shot efficiency
+       - Mention any missing holes
 
     5. Round-by-Round Performance:
        - FORMAT AS: "Game [Date] [Time]:"
