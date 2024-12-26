@@ -311,16 +311,12 @@ def analyze_player_performance(client, df, selected_player):
            - Handicap Index: {analytics['Handicap_Index']}
            - Strokes Gained vs Handicap Group: {analytics['Strokes_Gained_vs_Handicap_Group']}
            - Scoring Average: {analytics['Scoring_Average']}
-           - GIR Percentage: [value]%
 
         2. Time of Day Performance Analysis (CRITICAL):
            - AM Scoring Average: {analytics['AM_Scoring_Average']}
            - PM Scoring Average: {analytics['PM_Scoring_Average']}
            - Optimal Playing Window: {analytics['Optimal_Playing_Window']}
            - Performance Delta: {analytics['Performance_Delta']} strokes
-           - Detailed green speed impact analysis
-           - Wind pattern adaptation metrics
-           - Temperature impact on distance control
 
         3. Technical Handicap Analysis:
            - Handicap Peer Group: {analytics['Handicap_Peer_Group']}
