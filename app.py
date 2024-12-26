@@ -121,6 +121,10 @@ def main():
         4. Review the analysis and download the presentation
         """)
 
+        # Add version footer
+        st.markdown("---")
+        st.markdown("**Version 1.0.1**")
+
     except Exception as e:
         st.error(f"Application error: {str(e)}")
         st.error("Please refresh the page and try again")
