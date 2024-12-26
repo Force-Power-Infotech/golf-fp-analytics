@@ -159,121 +159,109 @@ def analyze_player_performance(client, df, selected_player):
     try:
         analysis_prompt = f"""You are an elite PGA-level golf performance analyst specializing in statistical analysis and player improvement. Analyze this player's detailed performance data:
 
-Provided All Data:    
-////START////
-{df.to_string()}
-////END////
+    Provided All Data:    
+    ////START////
+    {df.to_string()}
+    ////END////
 
-Selected Player: {selected_player}
+    Selected Player: {selected_player}
 
-Course Conditions Context:
-- Morning Rounds (Before 10 AM): Typically slower greens due to morning dew, cooler temperatures affecting ball flight
-- Afternoon Rounds: Faster green speeds, wind patterns more variable, drier conditions affecting roll distance
-- Winter Conditions: Afternoon sun removes dew effect, potentially increasing roll distance by 10-15%
+    Provide a comprehensive technical analysis following this structure:
 
-Provide a comprehensive technical analysis following this structure:
+    1. Overall Performance Metrics:
+       - FORMAT AS: "Total Par: [value]" (Include + or - relative to course par)
+       - FORMAT AS: "Handicap Index: [value]" (Include trend direction)
+       - FORMAT AS: "Strokes Gained vs Handicap Group: [value]"
+       - FORMAT AS: "Scoring Average: [value]"
+       - FORMAT AS: "GIR Percentage: [value]%"
 
-1. Overall Performance Metrics:
-   - FORMAT AS: "Total Par: [value]" (Include + or - relative to course par)
-   - FORMAT AS: "Handicap Index: [value]" (Include trend direction)
-   - FORMAT AS: "Strokes Gained vs Handicap Group: [value]"
-   - FORMAT AS: "Scoring Average: [value]"
-   - FORMAT AS: "GIR Percentage: [value]%"
+    2. Time of Day Performance Analysis:
+       - FORMAT AS: "AM Scoring Average: [value]"
+       - FORMAT AS: "PM Scoring Average: [value]"
+       - FORMAT AS: "Optimal Playing Window: [Morning/Afternoon]"
+       - FORMAT AS: "Performance Delta: [value] strokes"
 
-2. Time of Day Performance Analysis (CRITICAL):
-   - FORMAT AS: "AM Scoring Average: [value]"
-   - FORMAT AS: "PM Scoring Average: [value]"
-   - FORMAT AS: "Optimal Playing Window: [Morning/Afternoon]"
-   - FORMAT AS: "Performance Delta: [value] strokes"
-   - Detailed green speed impact analysis
-   - Wind pattern adaptation metrics
-   - Temperature impact on distance control
+    3. Technical Handicap Analysis:
+       - FORMAT AS: "Handicap Peer Group: [range]"
+       - FORMAT AS: "Statistical Peer Group Size: [number] players"
+       - FORMAT AS: "Strokes Gained/Lost vs Peer Group: [value]"
+       - Comparative shot pattern analysis
+       - Scoring distribution on par 3s/4s/5s
+       - Course management efficiency rating
 
-3. Technical Handicap Analysis:
-   - FORMAT AS: "Handicap Peer Group: [range]"
-   - FORMAT AS: "Statistical Peer Group Size: [number] players"
-   - FORMAT AS: "Strokes Gained/Lost vs Peer Group: [value]"
-   - Comparative shot pattern analysis
-   - Scoring distribution on par 3s/4s/5s
-   - Course management efficiency rating
-
-4. Hole-by-Hole Statistical Breakdown:
-   - FORMAT AS: "Hole [X] ([Par]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
-   - FORMAT AS: "Total Pars: [number]"
-   - FORMAT AS: "Double Bogeys or Worse: [number]"
-   - Time of Day Analysis:
-      * FORMAT AS: "Morning Stats - Hole [X]:"
+    4. Hole-by-Hole Statistical Breakdown:
+       - FORMAT AS: "Hole [X] ([Par]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+       - FORMAT AS: "Total Pars: [number]"
+       - FORMAT AS: "Double Bogeys or Worse: [number]"
+       - Time of Day Analysis:
+          * FORMAT AS: "Morning Stats - Hole [X]:"
         - Average Score: [value]
         - Total Pars: [number]
         - Double Bogeys or Worse: [number]
-      * FORMAT AS: "Afternoon Stats - Hole [X]:"
+          * FORMAT AS: "Afternoon Stats - Hole [X]:"
         - Average Score: [value]
         - Total Pars: [number]
         - Double Bogeys or Worse: [number]
-   - Risk/reward decision points
-   - Shot distribution patterns
-   - Critical scoring opportunities
-   - Recovery shot efficiency
+       - Risk/reward decision points
+       - Shot distribution patterns
+       - Critical scoring opportunities
+       - Recovery shot efficiency
 
-5. Round-by-Round Performance:
-   - FORMAT AS: "Game [Date] [Time]:"
-     * Gross Score: [value]
-     * Total Pars: [number]
-     * Total Bogeys: [number]
-     * Total Double Bogeys or Worse: [number]
-   - Include morning/afternoon split
-   - Trend analysis
-   - Pattern identification
+    5. Round-by-Round Performance:
+       - FORMAT AS: "Game [Date] [Time]:"
+         * Gross Score: [value]
+         * Total Pars: [number]
+         * Total Bogeys: [number]
+         * Total Double Bogeys or Worse: [number]
+       - Include morning/afternoon split
+       - Trend analysis
+       - Pattern identification
 
-6. Key Performance Insights:
-   - FORMAT AS: "Strategic Finding: [detailed description]"
-   - Time-based performance variations including:
-     * Morning vs Afternoon par conversion rates
-     * Time-specific double bogey patterns
-     * Scoring distribution by time of day
-   - Course management decisions
-   - Scoring pattern anomalies
-   - Statistical strengths/weaknesses
-   - Weather impact correlations
+    6. Key Performance Insights:
+       - FORMAT AS: "Strategic Finding: [detailed description]"
+       - Time-based performance variations including:
+         * Morning vs Afternoon par conversion rates
+         * Time-specific double bogey patterns
+         * Scoring distribution by time of day
+       - Course management decisions
+       - Scoring pattern anomalies
+       - Statistical strengths/weaknesses
 
-7. Professional Development Recommendations:
-   - FORMAT AS: "Technical Recommendation: [specific action] (Projected Impact: XX%)"
-   - Optimal tee time strategy
-   - Shot selection modifications
-   - Practice priority areas
-   - Course management adjustments
-   - Environmental adaptation strategies
+    7. Professional Development Recommendations:
+       - FORMAT AS: "Technical Recommendation: [specific action] (Projected Impact: XX%)"
+       - Optimal tee time strategy
+       - Shot selection modifications
+       - Practice priority areas
+       - Course management adjustments
 
-Technical Analysis Requirements:
-- Emphasize strokes gained/lost metrics
-- Include detailed morning vs afternoon statistical comparisons
-- Analyze scoring patterns relative to playing conditions
-- Evaluate decision-making efficiency
-- Quantify performance under varying conditions
-- Provide specific practice protocols
+    Technical Analysis Requirements:
+    - Emphasize strokes gained/lost metrics
+    - Include detailed morning vs afternoon statistical comparisons
+    - Analyze scoring patterns
+    - Evaluate decision-making efficiency
+    - Provide specific practice protocols
 
-Key Analysis Points:
-- Shot pattern distribution
-- Scoring efficiency by hole type
-- Time-of-day performance correlation
-- Weather impact assessment
-- Course management decision points
-- Statistical trend analysis
-- Performance optimization opportunities
-- Risk/reward efficiency metrics
+    Key Analysis Points:
+    - Shot pattern distribution
+    - Scoring efficiency by hole type
+    - Time-of-day performance correlation
+    - Course management decision points
+    - Statistical trend analysis
+    - Performance optimization opportunities
+    - Risk/reward efficiency metrics
 
-Ensure all numerical data follows strict formatting for accurate statistical tracking and trend analysis.
+    Ensure all numerical data follows strict formatting for accurate statistical tracking and trend analysis.
 
-Additional Analysis Requirements:
-- Calculate and highlight total pars for each hole and overall rounds
-- Track double bogey or worse frequency by hole and time of day
-- Compare morning vs afternoon performance for each statistical category
-- Identify patterns in scoring distribution across different rounds
-- Analyze par conversion rates by time of day
-- Track progression of double bogey avoidance"""
+    Additional Analysis Requirements:
+    - Calculate and highlight total pars for each hole and overall rounds
+    - Track double bogey or worse frequency by hole and time of day
+    - Compare morning vs afternoon performance for each statistical category
+    - Identify patterns in scoring distribution across different rounds
+    - Analyze par conversion rates by time of day
+    - Track progression of double bogey avoidance"""
 
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model="chatgpt-4o-latest",
             messages=[
                 {"role": "system", "content": "You are a professional golf analyst specializing in statistical analysis and performance improvement recommendations."},
                 {"role": "user", "content": analysis_prompt}
