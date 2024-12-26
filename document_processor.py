@@ -210,8 +210,7 @@ def calculate_analytics(player_data):
         analytics['AM_Scoring_Average'] - analytics['PM_Scoring_Average'])
 
     # Technical Handicap Analysis
-    analytics['Handicap_Peer_Group'] = f"{
-        player_data['Handicap'].min()} - {player_data['Handicap'].max()}"
+    analytics['Handicap_Peer_Group'] = f"{player_data['Handicap'].min()} - {player_data['Handicap'].max()}"
     analytics['Statistical_Peer_Group_Size'] = len(player_data)
     analytics['Strokes_Gained_Lost_vs_Peer_Group'] = player_data['Game_Result'].mean()
 
@@ -252,6 +251,9 @@ def calculate_analytics(player_data):
         })
     analytics['Round_by_Round_Stats'] = round_stats
 
+    # Add all available data for the selected player for hole-by-hole information
+    analytics['Player_Hole_Data'] = player_data.to_dict(orient='records')
+
     return analytics
 
 
@@ -264,7 +266,7 @@ def analyze_player_performance(client, df, selected_player):
         def convert_to_serializable(obj):
             if isinstance(obj, (pd.Series, pd.DataFrame)):
                 return obj.to_dict()
-            elif isinstance(obj, (np.int64, np.float64)):
+            elif isinstance(obj, (np.integer, np.floating)):
                 return obj.item()
             elif isinstance(obj, (datetime.time, datetime.date)):
                 return obj.isoformat()
@@ -312,7 +314,7 @@ def analyze_player_performance(client, df, selected_player):
            - Strokes Gained vs Handicap Group: {analytics['Strokes_Gained_vs_Handicap_Group']}
            - Scoring Average: {analytics['Scoring_Average']}
 
-        2. Time of Day Performance Analysis (CRITICAL):
+        2. Time of Day Performance Analysis:
            - AM Scoring Average: {analytics['AM_Scoring_Average']}
            - PM Scoring Average: {analytics['PM_Scoring_Average']}
            - Optimal Playing Window: {analytics['Optimal_Playing_Window']}
@@ -328,9 +330,108 @@ def analyze_player_performance(client, df, selected_player):
 
         4. Hole-by-Hole Statistical Breakdown:
            {json.dumps(analytics['Hole_by_Hole_Stats'], indent=4)}
+           - FORMAT AS: "Hole 1 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+            - FORMAT AS: "Total Pars: [number]"
+            - FORMAT AS: "Double Bogeys or Worse: [number]"
+            - Morning Stats:
+            - Afternoon Stats:
+           - FORMAT AS: "Hole 2 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+            - FORMAT AS: "Total Pars: [number]"
+            - FORMAT AS: "Double Bogeys or Worse: [number]"
+            - Morning Stats:
+            - Afternoon Stats:
+           - FORMAT AS: "Hole 3 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+            - FORMAT AS: "Total Pars: [number]"
+            - FORMAT AS: "Double Bogeys or Worse: [number]"
+            - Morning Stats:
+            - Afternoon Stats:
+           - FORMAT AS: "Hole 4 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+            - FORMAT AS: "Total Pars: [number]"
+            - FORMAT AS: "Double Bogeys or Worse: [number]"
+            - Morning Stats:
+            - Afternoon Stats:
+           - FORMAT AS: "Hole 5 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+            - FORMAT AS: "Total Pars: [number]"
+            - FORMAT AS: "Double Bogeys or Worse: [number]"
+            - Morning Stats:
+            - Afternoon Stats:
+           - FORMAT AS: "Hole 6 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+            - FORMAT AS: "Total Pars: [number]"
+            - FORMAT AS: "Double Bogeys or Worse: [number]"
+            - Morning Stats:
+            - Afternoon Stats:
+           - FORMAT AS: "Hole 7 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+            - FORMAT AS: "Total Pars: [number]"
+            - FORMAT AS: "Double Bogeys or Worse: [number]"
+            - Morning Stats:
+            - Afternoon Stats:
+           - FORMAT AS: "Hole 8 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+            - FORMAT AS: "Total Pars: [number]"
+            - FORMAT AS: "Double Bogeys or Worse: [number]"
+            - Morning Stats:
+            - Afternoon Stats:
+           - FORMAT AS: "Hole 9 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+            - FORMAT AS: "Total Pars: [number]"
+            - FORMAT AS: "Double Bogeys or Worse: [number]"
+            - Morning Stats:
+            - Afternoon Stats:
+           - FORMAT AS: "Hole 10 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+            - FORMAT AS: "Total Pars: [number]"
+            - FORMAT AS: "Double Bogeys or Worse: [number]"
+            - Morning Stats:
+            - Afternoon Stats:
+           - FORMAT AS: "Hole 11 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+            - FORMAT AS: "Total Pars: [number]"
+            - FORMAT AS: "Double Bogeys or Worse: [number]"
+            - Morning Stats:
+            - Afternoon Stats:
+           - FORMAT AS: "Hole 12 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+            - FORMAT AS: "Total Pars: [number]"
+            - FORMAT AS: "Double Bogeys or Worse: [number]"
+            - Morning Stats:
+            - Afternoon Stats:
+           - FORMAT AS: "Hole 13 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+            - FORMAT AS: "Total Pars: [number]"
+            - FORMAT AS: "Double Bogeys or Worse: [number]"
+            - Morning Stats:
+            - Afternoon Stats:
+           - FORMAT AS: "Hole 14 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+            - FORMAT AS: "Total Pars: [number]"
+            - FORMAT AS: "Double Bogeys or Worse: [number]"
+            - Morning Stats:
+            - Afternoon Stats:
+           - FORMAT AS: "Hole 15 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+            - FORMAT AS: "Total Pars: [number]"
+            - FORMAT AS: "Double Bogeys or Worse: [number]"
+            - Morning Stats:
+            - Afternoon Stats:
+           - FORMAT AS: "Hole 16 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+            - FORMAT AS: "Total Pars: [number]"
+            - FORMAT AS: "Double Bogeys or Worse: [number]"
+            - Morning Stats:
+            - Afternoon Stats:
+           - FORMAT AS: "Hole 17 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+            - FORMAT AS: "Total Pars: [number]"
+            - FORMAT AS: "Double Bogeys or Worse: [number]"
+            - Morning Stats:
+            - Afternoon Stats:
+           - FORMAT AS: "Hole 18 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+            - FORMAT AS: "Total Pars: [number]"
+            - FORMAT AS: "Double Bogeys or Worse: [number]"
+            - Morning Stats:
+            - Afternoon Stats:
+            - Risk/reward decision points
+            - Shot distribution patterns
+            - Critical scoring opportunities
+            - Recovery shot efficiency
 
         5. Round-by-Round Performance:
            {json.dumps(analytics['Round_by_Round_Stats'], indent=4)}
+           - FORMAT AS: "[Date]: 
+                - Gross Score: [score] [handicap added if applicable]
+                - Total Pars: [pars]
+                - Total Bogeys: [bogeys]
+                - Total Double Bogeys or Worse: [dbw]"
 
         6. Key Performance Insights:
            - Strategic Finding: [detailed description]
@@ -358,6 +459,9 @@ def analyze_player_performance(client, df, selected_player):
         - Evaluate decision-making efficiency
         - Quantify performance under varying conditions
         - Provide specific practice protocols
+
+        Player Hole Data:
+        {json.dumps(analytics['Player_Hole_Data'], indent=4)}
         """
 
         # Call the API with the single prompt
@@ -365,10 +469,10 @@ def analyze_player_performance(client, df, selected_player):
             response = client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
-                    {"role": "system", "content": "You are a professional golf analyst specializing in statistical analysis and performance improvement recommendations."},
+                    {"role": "system", "content": "You are a professional golf analyst specializing in statistical analysis and performance improvement recommendations.Provide detailed results for every item in the data but for numbers, provide up to two decimal places if applicable. Do not summarize or condense the output. Include all repetitive patterns explicitly."},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.7,
+                temperature=0.75,
             )
             return response.choices[0].message.content
         except Exception as e:
