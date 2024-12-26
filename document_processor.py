@@ -7,6 +7,8 @@ import tiktoken
 from pptx import Presentation
 from config import OPENAI_API_KEY
 import json  # Add this import at the top with other imports
+import numpy as np  # Add this import at the top with other imports
+import datetime  # Add this import at the top with other imports
 
 
 def validate_api_key(api_key):
@@ -155,132 +157,227 @@ def get_player_column(df):
     raise ValueError("Could not find player column in the data")
 
 
+def fetch_data(df, selected_player):
+    """Fetch data for the selected player and handle null values."""
+    player_data = df[df['Player_Name'] == selected_player].fillna(0)
+    # Ensure all relevant columns are present and handle missing columns
+    required_columns = ['Tot_par', 'Handicap', 'Game_Result'] + [f'H_{
+        i}_GS' for i in range(1, 19)] + [f'H_{i}_NS' for i in range(1, 19)] + ['Tee Time']
+    for col in required_columns:
+        if col not in player_data.columns:
+            player_data[col] = 0
+    return player_data
+
+
+def calculate_analytics(player_data):
+    """Calculate all kinds of analytics for the player."""
+    analytics = {}
+
+    # Convert all relevant columns to numeric, handling errors by setting invalid parsing to NaN
+    numeric_columns = ['Tot_par', 'Handicap', 'Game_Result'] + \
+        [f'H_{i}_GS' for i in range(1, 19)] + \
+        [f'H_{i}_NS' for i in range(1, 19)]
+    player_data[numeric_columns] = player_data[numeric_columns].apply(
+        pd.to_numeric, errors='coerce').fillna(0)
+
+    # Convert 'Tee Time' to datetime.time for proper comparison
+    def convert_to_time(time_str):
+        try:
+            return pd.to_datetime(time_str, format='%H:%M').time()
+        except ValueError:
+            return pd.to_datetime(time_str, format='%H:%M:%S').time()
+
+    player_data['Tee Time'] = player_data['Tee Time'].apply(convert_to_time)
+
+    # Overall Performance Metrics
+    analytics['Total_Par'] = player_data['Tot_par'].sum()
+    analytics['Handicap_Index'] = player_data['Handicap'].mean()
+    analytics['Strokes_Gained_vs_Handicap_Group'] = player_data['Game_Result'].mean()
+    analytics['Scoring_Average'] = player_data[[
+        f'H_{i}_GS' for i in range(1, 19)]].mean().mean()
+
+    # Time of Day Performance Analysis
+    am_rounds = player_data[player_data['Tee Time'] <
+                            pd.to_datetime('10:00', format='%H:%M').time()]
+    pm_rounds = player_data[player_data['Tee Time'] >=
+                            pd.to_datetime('10:00', format='%H:%M').time()]
+    analytics['AM_Scoring_Average'] = am_rounds[[
+        f'H_{i}_GS' for i in range(1, 19)]].mean().mean()
+    analytics['PM_Scoring_Average'] = pm_rounds[[
+        f'H_{i}_GS' for i in range(1, 19)]].mean().mean()
+    analytics['Optimal_Playing_Window'] = 'Morning' if analytics['AM_Scoring_Average'] < analytics['PM_Scoring_Average'] else 'Afternoon'
+    analytics['Performance_Delta'] = abs(
+        analytics['AM_Scoring_Average'] - analytics['PM_Scoring_Average'])
+
+    # Technical Handicap Analysis
+    analytics['Handicap_Peer_Group'] = f"{
+        player_data['Handicap'].min()} - {player_data['Handicap'].max()}"
+    analytics['Statistical_Peer_Group_Size'] = len(player_data)
+    analytics['Strokes_Gained_Lost_vs_Peer_Group'] = player_data['Game_Result'].mean()
+
+    # Hole-by-Hole Statistical Breakdown
+    hole_stats = {}
+    for hole in range(1, 19):
+        hole_stats[f'Hole_{hole}'] = {
+            'Par': player_data[f'H_{hole}_GS'].mean(),
+            'Total_Pars': (player_data[f'H_{hole}_GS'] == player_data[f'H_{hole}_NS']).sum(),
+            'Double_Bogeys_or_Worse': (player_data[f'H_{hole}_GS'] >= player_data[f'H_{hole}_NS'] + 2).sum(),
+            'Morning_Stats': {
+                'Average_Score': am_rounds[f'H_{hole}_GS'].mean(),
+                'Total_Pars': (am_rounds[f'H_{hole}_GS'] == am_rounds[f'H_{hole}_NS']).sum(),
+                'Double_Bogeys_or_Worse': (am_rounds[f'H_{hole}_GS'] >= am_rounds[f'H_{hole}_NS'] + 2).sum()
+            },
+            'Afternoon_Stats': {
+                'Average_Score': pm_rounds[f'H_{hole}_GS'].mean(),
+                'Total_Pars': (pm_rounds[f'H_{hole}_GS'] == pm_rounds[f'H_{hole}_NS']).sum(),
+                'Double_Bogeys_or_Worse': (pm_rounds[f'H_{hole}_GS'] >= pm_rounds[f'H_{hole}_NS'] + 2).sum()
+            }
+        }
+    analytics['Hole_by_Hole_Stats'] = hole_stats
+
+    # Round-by-Round Performance
+    round_stats = []
+    for _, row in player_data.iterrows():
+        gross_scores = row[[f'H_{i}_GS' for i in range(1, 19)]]
+        net_scores = row[[f'H_{i}_NS' for i in range(1, 19)]]
+        # Ensure indices are aligned for comparison
+        gross_scores.index = net_scores.index
+        round_stats.append({
+            'Date': row['Date'],
+            'Tee_Time': row['Tee Time'],
+            'Gross_Score': gross_scores.sum(),
+            'Total_Pars': (gross_scores == net_scores).sum(),
+            'Total_Bogeys': (gross_scores == net_scores + 1).sum(),
+            'Total_Double_Bogeys_or_Worse': (gross_scores >= net_scores + 2).sum()
+        })
+    analytics['Round_by_Round_Stats'] = round_stats
+
+    return analytics
+
+
 def analyze_player_performance(client, df, selected_player):
     try:
-        analysis_prompt = f"""You are an elite PGA-level golf performance analyst specializing in statistical analysis and player improvement. Analyze this player's detailed performance data:
+        player_data = fetch_data(df, selected_player)
+        analytics = calculate_analytics(player_data)
 
-    Provided All Data:    
-    ////START////
-    {df.to_string()}
-    ////END////
+        # Convert all numeric values and datetime objects to standard Python types for JSON serialization
+        def convert_to_serializable(obj):
+            if isinstance(obj, (pd.Series, pd.DataFrame)):
+                return obj.to_dict()
+            elif isinstance(obj, (np.int64, np.float64)):
+                return obj.item()
+            elif isinstance(obj, (datetime.time, datetime.date)):
+                return obj.isoformat()
+            elif isinstance(obj, dict):
+                return {k: convert_to_serializable(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_to_serializable(i) for i in obj]
+            return obj
 
-    scoring format:
-    H_1_GS: Hole 1 Gross Score
-    H_1_NS: Hole 1 Net Score
-    for GS calculation consider Handicap always
+        analytics = convert_to_serializable(analytics)
 
-    Selected Player: {selected_player}
+        hole_index_data = [
+            {"hole_no": 1, "par": 4, "stroke_index": 11},
+            {"hole_no": 2, "par": 3, "stroke_index": 17},
+            {"hole_no": 3, "par": 4, "stroke_index": 3},
+            {"hole_no": 4, "par": 5, "stroke_index": 13},
+            {"hole_no": 5, "par": 4, "stroke_index": 9},
+            {"hole_no": 6, "par": 4, "stroke_index": 5},
+            {"hole_no": 7, "par": 4, "stroke_index": 1},
+            {"hole_no": 8, "par": 4, "stroke_index": 15},
+            {"hole_no": 9, "par": 4, "stroke_index": 7},
+            {"hole_no": 10, "par": 4, "stroke_index": 2},
+            {"hole_no": 11, "par": 4, "stroke_index": 8},
+            {"hole_no": 12, "par": 4, "stroke_index": 14},
+            {"hole_no": 13, "par": 3, "stroke_index": 16},
+            {"hole_no": 14, "par": 4, "stroke_index": 4},
+            {"hole_no": 15, "par": 5, "stroke_index": 12},
+            {"hole_no": 16, "par": 4, "stroke_index": 18},
+            {"hole_no": 17, "par": 4, "stroke_index": 10},
+            {"hole_no": 18, "par": 4, "stroke_index": 6}
+        ]
 
-    Important: 
-    This a very extended analysis, so please make sure to provide a detailed analysis with all the required metrics.
-    Don't say continue this structure for all holes, provide the analysis for each hole separately.
+        # Define the single prompt for the entire analysis
+        prompt = f"""
+        Provide a comprehensive technical analysis for the selected player with the following sections:
 
-    Provide a comprehensive technical analysis following this structure:
+        Player: {selected_player}
 
-    1. Overall Performance Metrics:
-       - FORMAT AS: "Total Par: [value]" (Include + or - relative to course par)
-       - FORMAT AS: "Handicap Index: [value]" (Include trend direction)
-       - FORMAT AS: "Strokes Gained vs Handicap Group: [value]"
-       - FORMAT AS: "Scoring Average: [value]"
-       - FORMAT AS: "GIR Percentage: [value]%"
+        Provided Hole Index Data:
+        {json.dumps(hole_index_data, indent=4)}
 
-    2. Time of Day Performance Analysis:
-       - FORMAT AS: "AM Scoring Average: [value]"
-       - FORMAT AS: "PM Scoring Average: [value]"
-       - FORMAT AS: "Optimal Playing Window: [Morning/Afternoon]"
-       - FORMAT AS: "Performance Delta: [value] strokes"
+        1. Overall Performance Metrics:
+           - Total Par: {analytics['Total_Par']}
+           - Handicap Index: {analytics['Handicap_Index']}
+           - Strokes Gained vs Handicap Group: {analytics['Strokes_Gained_vs_Handicap_Group']}
+           - Scoring Average: {analytics['Scoring_Average']}
+           - GIR Percentage: [value]%
 
-    3. Technical Handicap Analysis:
-       - FORMAT AS: "Handicap Peer Group: [range]"
-       - FORMAT AS: "Statistical Peer Group Size: [number] players"
-       - FORMAT AS: "Strokes Gained/Lost vs Peer Group: [value]"
-       - Comparative shot pattern analysis
-       - Scoring distribution on par 3s/4s/5s
-       - Course management efficiency rating
+        2. Time of Day Performance Analysis (CRITICAL):
+           - AM Scoring Average: {analytics['AM_Scoring_Average']}
+           - PM Scoring Average: {analytics['PM_Scoring_Average']}
+           - Optimal Playing Window: {analytics['Optimal_Playing_Window']}
+           - Performance Delta: {analytics['Performance_Delta']} strokes
+           - Detailed green speed impact analysis
+           - Wind pattern adaptation metrics
+           - Temperature impact on distance control
 
-    4. Hole-by-Hole Statistical Breakdown:
-    * Need For each and every hole (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18) [Important, if not available, please mention]:
-       - FORMAT AS: "Hole [X] ([Par]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
-       - FORMAT AS: "Total Pars: [number]"
-       - FORMAT AS: "Double Bogeys or Worse: [number]"
-       - Time of Day Analysis:
-          * FORMAT AS: "Morning Stats - Hole [X]:"
-            - Average Score: [value]
-            - Total Pars: [number]
-            - Double Bogeys or Worse: [number]
-          * FORMAT AS: "Afternoon Stats - Hole [X]:"
-            - Average Score: [value]
-            - Total Pars: [number]
-            - Double Bogeys or Worse: [number]
-       - Risk/reward decision points
-       - Shot distribution patterns
-       - Critical scoring opportunities
-       - Recovery shot efficiency
-       - Mention any missing holes
+        3. Technical Handicap Analysis:
+           - Handicap Peer Group: {analytics['Handicap_Peer_Group']}
+           - Statistical Peer Group Size: {analytics['Statistical_Peer_Group_Size']} players
+           - Strokes Gained/Lost vs Peer Group: {analytics['Strokes_Gained_Lost_vs_Peer_Group']}
+           - Comparative shot pattern analysis
+           - Scoring distribution on par 3s/4s/5s
+           - Course management efficiency rating
 
-    5. Round-by-Round Performance:
-       - FORMAT AS: "Game [Date] [Time]:"
-         * Gross Score: [value]
-         * Total Pars: [number]
-         * Total Bogeys: [number]
-         * Total Double Bogeys or Worse: [number]
-       - Include morning/afternoon split
-       - Trend analysis
-       - Pattern identification
+        4. Hole-by-Hole Statistical Breakdown:
+           {json.dumps(analytics['Hole_by_Hole_Stats'], indent=4)}
 
-    6. Key Performance Insights:
-       - FORMAT AS: "Strategic Finding: [detailed description]"
-       - Time-based performance variations including:
-         * Morning vs Afternoon par conversion rates
-         * Time-specific double bogey patterns
-         * Scoring distribution by time of day
-       - Course management decisions
-       - Scoring pattern anomalies
-       - Statistical strengths/weaknesses
+        5. Round-by-Round Performance:
+           {json.dumps(analytics['Round_by_Round_Stats'], indent=4)}
 
-    7. Professional Development Recommendations:
-       - FORMAT AS: "Technical Recommendation: [specific action] (Projected Impact: XX%)"
-       - Optimal tee time strategy
-       - Shot selection modifications
-       - Practice priority areas
-       - Course management adjustments
+        6. Key Performance Insights:
+           - Strategic Finding: [detailed description]
+           - Time-based performance variations including:
+             * Morning vs Afternoon par conversion rates
+             * Time-specific double bogey patterns
+             * Scoring distribution by time of day
+           - Course management decisions
+           - Scoring pattern anomalies
+           - Statistical strengths/weaknesses
+           - Weather impact correlations
 
-    Technical Analysis Requirements:
-    - Emphasize strokes gained/lost metrics
-    - Include detailed morning vs afternoon statistical comparisons
-    - Analyze scoring patterns
-    - Evaluate decision-making efficiency
-    - Provide specific practice protocols
+        7. Professional Development Recommendations:
+           - Technical Recommendation: [specific action] (Projected Impact: XX%)
+           - Optimal tee time strategy
+           - Shot selection modifications
+           - Practice priority areas
+           - Course management adjustments
+           - Environmental adaptation strategies
 
-    Key Analysis Points:
-    - Shot pattern distribution
-    - Scoring efficiency by hole type
-    - Time-of-day performance correlation
-    - Course management decision points
-    - Statistical trend analysis
-    - Performance optimization opportunities
-    - Risk/reward efficiency metrics
+        Technical Analysis Requirements:
+        - Emphasize strokes gained/lost metrics
+        - Include detailed morning vs afternoon statistical comparisons
+        - Analyze scoring patterns relative to playing conditions
+        - Evaluate decision-making efficiency
+        - Quantify performance under varying conditions
+        - Provide specific practice protocols
+        """
 
-    Ensure all numerical data follows strict formatting for accurate statistical tracking and trend analysis.
+        # Call the API with the single prompt
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "You are a professional golf analyst specializing in statistical analysis and performance improvement recommendations."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            return f"Error analyzing player performance: {str(e)}"
 
-    Additional Analysis Requirements:
-    - Calculate and highlight total pars for each hole and overall rounds
-    - Track double bogey or worse frequency by hole and time of day
-    - Compare morning vs afternoon performance for each statistical category
-    - Identify patterns in scoring distribution across different rounds
-    - Analyze par conversion rates by time of day
-    - Track progression of double bogey avoidance"""
-
-        response = client.chat.completions.create(
-            model="chatgpt-4o-latest",
-            messages=[
-                {"role": "system", "content": "You are a professional golf analyst specializing in statistical analysis and performance improvement recommendations."},
-                {"role": "user", "content": analysis_prompt}
-            ],
-            temperature=0.85,
-        )
-
-        return response.choices[0].message.content
     except Exception as e:
         return f"Error analyzing player performance: {str(e)}\nDataframe columns: {', '.join(df.columns.tolist())}"
 

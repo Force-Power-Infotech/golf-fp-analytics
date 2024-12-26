@@ -6,3 +6,4 @@ python-docx
 tiktoken
 python-dotenv
 openpyxl
+numpy
