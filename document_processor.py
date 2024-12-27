@@ -268,6 +268,7 @@ def calculate_analytics(player_data):
         round_stats.append({
             'Date': row['Date'],
             'Tee_Time': row['Tee Time'],
+            'Number_of_Holes_Played': (gross_scores > 0).sum(),
             'Gross_Score': gross_scores.sum(),
             'Total_Pars': (gross_scores == par_scores).sum(),
             'Total_Bogeys': (gross_scores == [par + 1 for par in par_scores]).sum(),
@@ -457,8 +458,10 @@ def analyze_player_performance(client, df, selected_player):
         5. Round-by-Round Performance:
            {json.dumps(analytics['Round_by_Round_Stats'], indent=4)}
            - FORMAT AS: "[Date]:
-                - Gross Score: [score] [handicap added if applicable]
+                - Gross Score: [score] [(Number_of_Holes_Played Holes)] [handicap added if applicable]
                 - Total Pars: [pars]
+                - Total Birdies: [birdies]
+                - Total Eagles: [eagles]
                 - Total Bogeys: [bogeys]
                 - Total Double Bogeys or Worse: [dbw]"
 
