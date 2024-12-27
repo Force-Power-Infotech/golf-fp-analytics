@@ -334,6 +334,9 @@ def analyze_player_performance(client, df, selected_player):
         Provided Hole Index Data:
         {json.dumps(hole_index_data, indent=4)}
 
+        Player Hole Data:
+        {json.dumps(analytics['Player_Hole_Data'], indent=4)}
+
         1. Overall Performance Metrics:
            - Total Par: {analytics['Total_Par']}
            - Handicap Index: {analytics['Handicap_Index']}
@@ -477,17 +480,6 @@ def analyze_player_performance(client, df, selected_player):
            - Practice priority areas
            - Course management adjustments
            - Environmental adaptation strategies
-
-        Technical Analysis Requirements:
-        - Emphasize strokes gained/lost metrics
-        - Include detailed morning vs afternoon statistical comparisons
-        - Analyze scoring patterns relative to playing conditions
-        - Evaluate decision-making efficiency
-        - Quantify performance under varying conditions
-        - Provide specific practice protocols
-
-        Player Hole Data:
-        {json.dumps(analytics['Player_Hole_Data'], indent=4)}
         """
 
         # Call the API with the single prompt
