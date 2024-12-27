@@ -171,12 +171,31 @@ def fetch_data(df, selected_player):
 
 def calculate_analytics(player_data):
     """Calculate all kinds of analytics for the player."""
+    hole_index_data = [
+        {"hole_no": 1, "par": 4, "stroke_index": 11},
+        {"hole_no": 2, "par": 3, "stroke_index": 17},
+        {"hole_no": 3, "par": 4, "stroke_index": 3},
+        {"hole_no": 4, "par": 5, "stroke_index": 13},
+        {"hole_no": 5, "par": 4, "stroke_index": 9},
+        {"hole_no": 6, "par": 4, "stroke_index": 5},
+        {"hole_no": 7, "par": 4, "stroke_index": 1},
+        {"hole_no": 8, "par": 4, "stroke_index": 15},
+        {"hole_no": 9, "par": 4, "stroke_index": 7},
+        {"hole_no": 10, "par": 4, "stroke_index": 2},
+        {"hole_no": 11, "par": 4, "stroke_index": 8},
+        {"hole_no": 12, "par": 4, "stroke_index": 14},
+        {"hole_no": 13, "par": 3, "stroke_index": 16},
+        {"hole_no": 14, "par": 4, "stroke_index": 4},
+        {"hole_no": 15, "par": 5, "stroke_index": 12},
+        {"hole_no": 16, "par": 4, "stroke_index": 18},
+        {"hole_no": 17, "par": 4, "stroke_index": 10},
+        {"hole_no": 18, "par": 4, "stroke_index": 6}
+    ]
     analytics = {}
 
     # Convert all relevant columns to numeric, handling errors by setting invalid parsing to NaN
     numeric_columns = ['Tot_par', 'Handicap', 'Game_Result'] + \
-        [f'H_{i}_GS' for i in range(1, 19)] + \
-        [f'H_{i}_NS' for i in range(1, 19)]
+        [f'H_{i}_GS' for i in range(1, 19)]
     player_data[numeric_columns] = player_data[numeric_columns].apply(
         pd.to_numeric, errors='coerce').fillna(0)
 
@@ -217,19 +236,26 @@ def calculate_analytics(player_data):
     # Hole-by-Hole Statistical Breakdown
     hole_stats = {}
     for hole in range(1, 19):
+        par = next(item['par'] for item in hole_index_data if item['hole_no'] == hole)
         hole_stats[f'Hole_{hole}'] = {
             'Par': player_data[f'H_{hole}_GS'].mean(),
-            'Total_Pars': (player_data[f'H_{hole}_GS'] == player_data[f'H_{hole}_NS']).sum(),
-            'Double_Bogeys_or_Worse': (player_data[f'H_{hole}_GS'] >= player_data[f'H_{hole}_NS'] + 2).sum(),
+            'Total_Pars': (player_data[f'H_{hole}_GS'] == par).sum(),
+            'Double_Bogeys_or_Worse': (player_data[f'H_{hole}_GS'] >= par + 2).sum(),
+            'Birdies': (player_data[f'H_{hole}_GS'] == par - 1).sum(),
+            'Eagles': (player_data[f'H_{hole}_GS'] <= par - 2).sum(),
             'Morning_Stats': {
                 'Average_Score': am_rounds[f'H_{hole}_GS'].mean(),
-                'Total_Pars': (am_rounds[f'H_{hole}_GS'] == am_rounds[f'H_{hole}_NS']).sum(),
-                'Double_Bogeys_or_Worse': (am_rounds[f'H_{hole}_GS'] >= am_rounds[f'H_{hole}_NS'] + 2).sum()
+                'Total_Pars': (am_rounds[f'H_{hole}_GS'] == par).sum(),
+                'Double_Bogeys_or_Worse': (am_rounds[f'H_{hole}_GS'] >= par + 2).sum(),
+                'Birdies': (am_rounds[f'H_{hole}_GS'] == par - 1).sum(),
+                'Eagles': (am_rounds[f'H_{hole}_GS'] <= par - 2).sum()
             },
             'Afternoon_Stats': {
                 'Average_Score': pm_rounds[f'H_{hole}_GS'].mean(),
-                'Total_Pars': (pm_rounds[f'H_{hole}_GS'] == pm_rounds[f'H_{hole}_NS']).sum(),
-                'Double_Bogeys_or_Worse': (pm_rounds[f'H_{hole}_GS'] >= pm_rounds[f'H_{hole}_NS'] + 2).sum()
+                'Total_Pars': (pm_rounds[f'H_{hole}_GS'] == par).sum(),
+                'Double_Bogeys_or_Worse': (pm_rounds[f'H_{hole}_GS'] >= par + 2).sum(),
+                'Birdies': (pm_rounds[f'H_{hole}_GS'] == par - 1).sum(),
+                'Eagles': (pm_rounds[f'H_{hole}_GS'] <= par - 2).sum()
             }
         }
     analytics['Hole_by_Hole_Stats'] = hole_stats
@@ -238,16 +264,16 @@ def calculate_analytics(player_data):
     round_stats = []
     for _, row in player_data.iterrows():
         gross_scores = row[[f'H_{i}_GS' for i in range(1, 19)]]
-        net_scores = row[[f'H_{i}_NS' for i in range(1, 19)]]
-        # Ensure indices are aligned for comparison
-        gross_scores.index = net_scores.index
+        par_scores = [next(item['par'] for item in hole_index_data if item['hole_no'] == i) for i in range(1, 19)]
         round_stats.append({
             'Date': row['Date'],
             'Tee_Time': row['Tee Time'],
             'Gross_Score': gross_scores.sum(),
-            'Total_Pars': (gross_scores == net_scores).sum(),
-            'Total_Bogeys': (gross_scores == net_scores + 1).sum(),
-            'Total_Double_Bogeys_or_Worse': (gross_scores >= net_scores + 2).sum()
+            'Total_Pars': (gross_scores == par_scores).sum(),
+            'Total_Bogeys': (gross_scores == [par + 1 for par in par_scores]).sum(),
+            'Total_Double_Bogeys_or_Worse': (gross_scores >= [par + 2 for par in par_scores]).sum(),
+            'Birdies': (gross_scores == [par - 1 for par in par_scores]).sum(),
+            'Eagles': (gross_scores <= [par - 2 for par in par_scores]).sum()
         })
     analytics['Round_by_Round_Stats'] = round_stats
 
@@ -427,7 +453,7 @@ def analyze_player_performance(client, df, selected_player):
 
         5. Round-by-Round Performance:
            {json.dumps(analytics['Round_by_Round_Stats'], indent=4)}
-           - FORMAT AS: "[Date]: 
+           - FORMAT AS: "[Date]:
                 - Gross Score: [score] [handicap added if applicable]
                 - Total Pars: [pars]
                 - Total Bogeys: [bogeys]
