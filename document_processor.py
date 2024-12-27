@@ -244,7 +244,7 @@ def calculate_analytics(player_data):
         valid_pm_scores = pm_rounds[f'H_{hole}_GS'][pm_rounds[f'H_{hole}_GS'].notna() & (pm_rounds[f'H_{hole}_GS'] != 0)]
 
         hole_stats[f'Hole_{hole}'] = {
-            'Par': valid_scores.mean() if not valid_scores.empty else 0,
+            'Player_Par': valid_scores.mean() if not valid_scores.empty else 0,
             'Total_Pars': (valid_scores == par).sum(),
             'Double_Bogeys_or_Worse': (valid_scores >= par + 2).sum(),
             'Birdies': (valid_scores == par - 1).sum(),
@@ -376,92 +376,92 @@ def analyze_player_performance(client, df, selected_player):
 
         4. Hole-by-Hole Statistical Breakdown:
            {json.dumps(analytics['Hole_by_Hole_Stats'], indent=4)}
-           - FORMAT AS: "Hole 1 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+           - FORMAT AS: "Hole 1 ([Player_Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
             - FORMAT AS: "Total Pars: [number]"
             - FORMAT AS: "Double Bogeys or Worse: [number]"
             - Morning Stats:
             - Afternoon Stats:
-           - FORMAT AS: "Hole 2 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+           - FORMAT AS: "Hole 2 ([Player_Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
             - FORMAT AS: "Total Pars: [number]"
             - FORMAT AS: "Double Bogeys or Worse: [number]"
             - Morning Stats:
             - Afternoon Stats:
-           - FORMAT AS: "Hole 3 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+           - FORMAT AS: "Hole 3 ([Player_Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
             - FORMAT AS: "Total Pars: [number]"
             - FORMAT AS: "Double Bogeys or Worse: [number]"
             - Morning Stats:
             - Afternoon Stats:
-           - FORMAT AS: "Hole 4 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+           - FORMAT AS: "Hole 4 ([Player_Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
             - FORMAT AS: "Total Pars: [number]"
             - FORMAT AS: "Double Bogeys or Worse: [number]"
             - Morning Stats:
             - Afternoon Stats:
-           - FORMAT AS: "Hole 5 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+           - FORMAT AS: "Hole 5 ([Player_Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
             - FORMAT AS: "Total Pars: [number]"
             - FORMAT AS: "Double Bogeys or Worse: [number]"
             - Morning Stats:
             - Afternoon Stats:
-           - FORMAT AS: "Hole 6 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+           - FORMAT AS: "Hole 6 ([Player_Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
             - FORMAT AS: "Total Pars: [number]"
             - FORMAT AS: "Double Bogeys or Worse: [number]"
             - Morning Stats:
             - Afternoon Stats:
-           - FORMAT AS: "Hole 7 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+           - FORMAT AS: "Hole 7 ([Player_Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
             - FORMAT AS: "Total Pars: [number]"
             - FORMAT AS: "Double Bogeys or Worse: [number]"
             - Morning Stats:
             - Afternoon Stats:
-           - FORMAT AS: "Hole 8 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+           - FORMAT AS: "Hole 8 ([Player_Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
             - FORMAT AS: "Total Pars: [number]"
             - FORMAT AS: "Double Bogeys or Worse: [number]"
             - Morning Stats:
             - Afternoon Stats:
-           - FORMAT AS: "Hole 9 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+           - FORMAT AS: "Hole 9 ([Player_Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
             - FORMAT AS: "Total Pars: [number]"
             - FORMAT AS: "Double Bogeys or Worse: [number]"
             - Morning Stats:
             - Afternoon Stats:
-           - FORMAT AS: "Hole 10 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+           - FORMAT AS: "Hole 10 ([Player_Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
             - FORMAT AS: "Total Pars: [number]"
             - FORMAT AS: "Double Bogeys or Worse: [number]"
             - Morning Stats:
             - Afternoon Stats:
-           - FORMAT AS: "Hole 11 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+           - FORMAT AS: "Hole 11 ([Player_Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
             - FORMAT AS: "Total Pars: [number]"
             - FORMAT AS: "Double Bogeys or Worse: [number]"
             - Morning Stats:
             - Afternoon Stats:
-           - FORMAT AS: "Hole 12 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+           - FORMAT AS: "Hole 12 ([Player_Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
             - FORMAT AS: "Total Pars: [number]"
             - FORMAT AS: "Double Bogeys or Worse: [number]"
             - Morning Stats:
             - Afternoon Stats:
-           - FORMAT AS: "Hole 13 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+           - FORMAT AS: "Hole 13 ([Player_Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
             - FORMAT AS: "Total Pars: [number]"
             - FORMAT AS: "Double Bogeys or Worse: [number]"
             - Morning Stats:
             - Afternoon Stats:
-           - FORMAT AS: "Hole 14 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+           - FORMAT AS: "Hole 14 ([Player_Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
             - FORMAT AS: "Total Pars: [number]"
             - FORMAT AS: "Double Bogeys or Worse: [number]"
             - Morning Stats:
             - Afternoon Stats:
-           - FORMAT AS: "Hole 15 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+           - FORMAT AS: "Hole 15 ([Player_Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
             - FORMAT AS: "Total Pars: [number]"
             - FORMAT AS: "Double Bogeys or Worse: [number]"
             - Morning Stats:
             - Afternoon Stats:
-           - FORMAT AS: "Hole 16 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+           - FORMAT AS: "Hole 16 ([Player_Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
             - FORMAT AS: "Total Pars: [number]"
             - FORMAT AS: "Double Bogeys or Worse: [number]"
             - Morning Stats:
             - Afternoon Stats:
-           - FORMAT AS: "Hole 17 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+           - FORMAT AS: "Hole 17 ([Player_Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
             - FORMAT AS: "Total Pars: [number]"
             - FORMAT AS: "Double Bogeys or Worse: [number]"
             - Morning Stats:
             - Afternoon Stats:
-           - FORMAT AS: "Hole 18 ([Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
+           - FORMAT AS: "Hole 18 ([Player_Par], Stroke Index: [stroke_index]): [player score] (Peer Avg: [avg], Field Avg: [avg])"
             - FORMAT AS: "Total Pars: [number]"
             - FORMAT AS: "Double Bogeys or Worse: [number]"
             - Morning Stats:
