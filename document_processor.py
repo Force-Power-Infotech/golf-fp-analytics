@@ -237,25 +237,34 @@ def calculate_analytics(player_data):
     hole_stats = {}
     for hole in range(1, 19):
         par = next(item['par'] for item in hole_index_data if item['hole_no'] == hole)
+        
+        # Get valid scores for this hole (exclude null/blank/zero values)
+        valid_scores = player_data[f'H_{hole}_GS'][player_data[f'H_{hole}_GS'].notna() & (player_data[f'H_{hole}_GS'] != 0)]
+        valid_am_scores = am_rounds[f'H_{hole}_GS'][am_rounds[f'H_{hole}_GS'].notna() & (am_rounds[f'H_{hole}_GS'] != 0)]
+        valid_pm_scores = pm_rounds[f'H_{hole}_GS'][pm_rounds[f'H_{hole}_GS'].notna() & (pm_rounds[f'H_{hole}_GS'] != 0)]
+
         hole_stats[f'Hole_{hole}'] = {
-            'Par': player_data[f'H_{hole}_GS'].mean(),
-            'Total_Pars': (player_data[f'H_{hole}_GS'] == par).sum(),
-            'Double_Bogeys_or_Worse': (player_data[f'H_{hole}_GS'] >= par + 2).sum(),
-            'Birdies': (player_data[f'H_{hole}_GS'] == par - 1).sum(),
-            'Eagles': (player_data[f'H_{hole}_GS'] <= par - 2).sum(),
+            'Par': valid_scores.mean() if not valid_scores.empty else 0,
+            'Total_Pars': (valid_scores == par).sum(),
+            'Double_Bogeys_or_Worse': (valid_scores >= par + 2).sum(),
+            'Birdies': (valid_scores == par - 1).sum(),
+            'Eagles': (valid_scores <= par - 2).sum(),
+            'Number_of_Rounds_Played': len(valid_scores),
             'Morning_Stats': {
-                'Average_Score': am_rounds[f'H_{hole}_GS'].mean(),
-                'Total_Pars': (am_rounds[f'H_{hole}_GS'] == par).sum(),
-                'Double_Bogeys_or_Worse': (am_rounds[f'H_{hole}_GS'] >= par + 2).sum(),
-                'Birdies': (am_rounds[f'H_{hole}_GS'] == par - 1).sum(),
-                'Eagles': (am_rounds[f'H_{hole}_GS'] <= par - 2).sum()
+                'Average_Score': valid_am_scores.mean() if not valid_am_scores.empty else 0,
+                'Total_Pars': (valid_am_scores == par).sum(),
+                'Double_Bogeys_or_Worse': (valid_am_scores >= par + 2).sum(),
+                'Birdies': (valid_am_scores == par - 1).sum(),
+                'Eagles': (valid_am_scores <= par - 2).sum(),
+                'Number_of_Rounds_Played': len(valid_am_scores)
             },
             'Afternoon_Stats': {
-                'Average_Score': pm_rounds[f'H_{hole}_GS'].mean(),
-                'Total_Pars': (pm_rounds[f'H_{hole}_GS'] == par).sum(),
-                'Double_Bogeys_or_Worse': (pm_rounds[f'H_{hole}_GS'] >= par + 2).sum(),
-                'Birdies': (pm_rounds[f'H_{hole}_GS'] == par - 1).sum(),
-                'Eagles': (pm_rounds[f'H_{hole}_GS'] <= par - 2).sum()
+                'Average_Score': valid_pm_scores.mean() if not valid_pm_scores.empty else 0,
+                'Total_Pars': (valid_pm_scores == par).sum(),
+                'Double_Bogeys_or_Worse': (valid_pm_scores >= par + 2).sum(),
+                'Birdies': (valid_pm_scores == par - 1).sum(),
+                'Eagles': (valid_pm_scores <= par - 2).sum(),
+                'Number_of_Rounds_Played': len(valid_pm_scores)
             }
         }
     analytics['Hole_by_Hole_Stats'] = hole_stats
@@ -263,18 +272,25 @@ def calculate_analytics(player_data):
     # Round-by-Round Performance
     round_stats = []
     for _, row in player_data.iterrows():
+        # Get all gross scores and filter out null/blank values (0 or NaN)
         gross_scores = row[[f'H_{i}_GS' for i in range(1, 19)]]
-        par_scores = [next(item['par'] for item in hole_index_data if item['hole_no'] == i) for i in range(1, 19)]
+        valid_scores = gross_scores[gross_scores.notna() & (gross_scores != 0)]
+        
+        # Get corresponding par scores only for holes that have valid gross scores
+        valid_hole_indices = [int(idx.split('_')[1].replace('GS', '')) for idx in valid_scores.index]
+        par_scores = [next(item['par'] for item in hole_index_data if item['hole_no'] == i) 
+                     for i in valid_hole_indices]
+
         round_stats.append({
             'Date': row['Date'],
             'Tee_Time': row['Tee Time'],
-            'Number_of_Holes_Played': (gross_scores > 0).sum(),
-            'Gross_Score': gross_scores.sum(),
-            'Total_Pars': (gross_scores == par_scores).sum(),
-            'Total_Bogeys': (gross_scores == [par + 1 for par in par_scores]).sum(),
-            'Total_Double_Bogeys_or_Worse': (gross_scores >= [par + 2 for par in par_scores]).sum(),
-            'Birdies': (gross_scores == [par - 1 for par in par_scores]).sum(),
-            'Eagles': (gross_scores <= [par - 2 for par in par_scores]).sum()
+            'Number_of_Holes_Played': len(valid_scores),
+            'Gross_Score': valid_scores.sum(),
+            'Total_Pars': sum(score == par for score, par in zip(valid_scores, par_scores)),
+            'Total_Bogeys': sum(score == (par + 1) for score, par in zip(valid_scores, par_scores)),
+            'Total_Double_Bogeys_or_Worse': sum(score >= (par + 2) for score, par in zip(valid_scores, par_scores)),
+            'Birdies': sum(score == (par - 1) for score, par in zip(valid_scores, par_scores)),
+            'Eagles': sum(score <= (par - 2) for score, par in zip(valid_scores, par_scores))
         })
     analytics['Round_by_Round_Stats'] = round_stats
 
