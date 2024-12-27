@@ -123,7 +123,7 @@ def main():
 
         # Add version footer
         st.markdown("---")
-        st.markdown("**Version 1.0.4**")
+        st.markdown("**Version 1.0.5**")
 
     except Exception as e:
         st.error(f"Application error: {str(e)}")
