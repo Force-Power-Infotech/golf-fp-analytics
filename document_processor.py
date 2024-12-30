@@ -354,6 +354,8 @@ def analyze_player_performance(client, df, selected_player):
         Player Hole Data:
         {json.dumps(analytics['Player_Hole_Data'], indent=4)}
 
+        Technical Analysis for {selected_player}:
+
         1. Overall Performance Metrics:
            - Total Par: {analytics['Total_Par']}
            - Handicap Index: {analytics['Handicap_Index']}
@@ -506,7 +508,7 @@ def analyze_player_performance(client, df, selected_player):
             response = client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
-                    {"role": "system", "content": "You are a professional golf analyst specializing in statistical analysis and performance improvement recommendations.Provide detailed results for every item in the data but for numbers, provide up to two decimal places if applicable. Do not summarize or condense the output. Include all repetitive patterns explicitly."},
+                    {"role": "system", "content": "You are a professional golf analyst specializing in statistical analysis and performance improvement recommendations.Provide detailed results for every item in the data but for numbers, provide up to two decimal places if applicable. Do not summarize or condense the output. Include all repetitive patterns explicitly.Make nice formatting of the text. so that it looks good on docs."},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.75,
